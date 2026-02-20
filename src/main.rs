@@ -1,8 +1,13 @@
 use axum::{
-    routing::get,
-    Router,
+    Json, Router, routing::get
 };
 use std::net::SocketAddr;
+use serde::Serialize;
+
+#[derive(Serialize)]
+struct HealthStatus{
+    status:String,
+}
 
 #[tokio::main]
 async fn main() {
@@ -19,6 +24,9 @@ async fn main() {
     .await.unwrap();
 }
 
-async fn root() -> &'static str{
-    "Trivia backend running"
+async fn root() -> Json<HealthStatus>{
+    let response = HealthStatus{
+        status: "Trivia backend running".to_string(),
+    };
+    Json(response)
 }
