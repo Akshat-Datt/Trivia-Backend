@@ -1,7 +1,7 @@
 use axum::{
     Json, extract::Path, http::StatusCode
 };
-use crate::models::question::Question;
+use crate::models::question_data::Question;
 
 pub fn sample_questions() -> Vec<Question>{
     vec![
