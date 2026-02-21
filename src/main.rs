@@ -6,12 +6,18 @@ use serde::Serialize;
 
 #[derive(Serialize)]
 struct HealthStatus{
-    status:String,
+    status: String
+}
+
+#[derive(Serialize, Clone)]
+struct Question{
+    id: i32,
+    question: String
 }
 
 #[tokio::main]
 async fn main() {
-    let app: Router<()> = Router::new().route("/", get(root));
+    let app: Router<()> = Router::new().route("/", get(root)).route("/questions", get(get_questions));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
 
@@ -25,8 +31,26 @@ async fn main() {
 }
 
 async fn root() -> Json<HealthStatus>{
-    let response = HealthStatus{
-        status: "Trivia backend running".to_string(),
+    let status = HealthStatus{
+        status: "Trivia Backend Running".to_owned(),
     };
-    Json(response)
+    Json(status)
+}
+
+async fn get_questions() -> Json<Vec<Question>>{
+    let questions = sample_questions();
+    Json(questions)
+}
+
+fn sample_questions() -> Vec<Question>{
+    vec![
+        Question{
+            id:1,
+            question: "What is Android".to_owned()
+        },
+        Question{
+            id:2,
+            question: "What is Rust".to_owned()
+        }
+    ]
 }
