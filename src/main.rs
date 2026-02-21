@@ -1,5 +1,5 @@
 use axum::{
-    Json, Router, routing::get
+    Json, Router, extract::{Path, path}, http::StatusCode, routing::get
 };
 use std::net::SocketAddr;
 use serde::Serialize;
@@ -11,13 +11,13 @@ struct HealthStatus{
 
 #[derive(Serialize, Clone)]
 struct Question{
-    id: i32,
+    id: u32,
     question: String
 }
 
 #[tokio::main]
 async fn main() {
-    let app: Router<()> = Router::new().route("/", get(root)).route("/questions", get(get_questions));
+    let app: Router<()> = Router::new().route("/", get(root)).route("/questions", get(get_questions)). route("/questions/{id}", get(get_question_by_id));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
 
@@ -40,6 +40,17 @@ async fn root() -> Json<HealthStatus>{
 async fn get_questions() -> Json<Vec<Question>>{
     let questions = sample_questions();
     Json(questions)
+}
+
+async fn get_question_by_id(Path(id): Path<u32>) -> Result<Json<Question>, StatusCode>{
+    let questions = sample_questions();
+
+    let question = questions.into_iter().find(|q| q.id == id);
+
+    match question {
+        Some(q) => Ok(Json(q)),
+        None => Err(StatusCode::NOT_FOUND)
+    }
 }
 
 fn sample_questions() -> Vec<Question>{
