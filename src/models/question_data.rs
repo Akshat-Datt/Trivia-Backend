@@ -10,3 +10,8 @@ pub struct Question {
 pub struct QuestionQuery{
     pub limit: Option<usize>
 }
+
+#[derive(Deserialize)]
+pub struct CreateQuestion{
+    pub question:String
+}

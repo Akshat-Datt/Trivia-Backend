@@ -1,7 +1,7 @@
 use axum::{
     Json, extract::{Path, Query}, http::StatusCode
 };
-use crate::models::question_data::{Question, QuestionQuery};
+use crate::models::question_data::{Question, QuestionQuery, CreateQuestion};
 
 pub fn sample_questions() -> Vec<Question>{
     vec![
@@ -35,4 +35,13 @@ pub async fn get_question_by_id(Path(id): Path<u32>) -> Result<Json<Question>, S
         Some(q) => Ok(Json(q)),
         None => Err(StatusCode::NOT_FOUND)
     }
-} 
+}
+
+pub async fn create_question(Json(payload): Json<CreateQuestion>) -> (StatusCode, Json<Question>){
+    let new_question = Question{
+        id: 999,
+        question: payload.question
+    };
+
+    (StatusCode::CREATED, Json(new_question))
+}
