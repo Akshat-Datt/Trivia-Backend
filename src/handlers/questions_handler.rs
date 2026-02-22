@@ -1,7 +1,7 @@
 use axum::{
-    Json, extract::Path, http::StatusCode
+    Json, extract::{Path, Query}, http::StatusCode
 };
-use crate::models::question_data::Question;
+use crate::models::question_data::{Question, QuestionQuery};
 
 pub fn sample_questions() -> Vec<Question>{
     vec![
@@ -16,8 +16,13 @@ pub fn sample_questions() -> Vec<Question>{
     ]
 }
 
-pub async fn get_questions() -> Json<Vec<Question>>{
-    let questions = sample_questions();
+pub async fn get_questions(Query(params): Query<QuestionQuery>) -> Json<Vec<Question>>{
+    let mut questions = sample_questions();
+
+    if let Some(limit) = params.limit{
+        questions.truncate(limit);
+    }
+
     Json(questions)
 }
 
