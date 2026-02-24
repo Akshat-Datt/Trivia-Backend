@@ -1,7 +1,8 @@
 use axum::{
-    Json, extract::{Path, Query}, http::StatusCode
+    Json, extract::{Path, Query, State}, http::StatusCode
 };
-use crate::models::question_data::{Question, QuestionQuery, CreateQuestion};
+use crate::{models::question_data::{CreateQuestion, Question, QuestionQuery}};
+use crate::state::app_state::AppState;
 
 pub fn sample_questions() -> Vec<Question>{
     vec![
@@ -16,14 +17,14 @@ pub fn sample_questions() -> Vec<Question>{
     ]
 }
 
-pub async fn get_questions(Query(params): Query<QuestionQuery>) -> Json<Vec<Question>>{
-    let mut questions = sample_questions();
+pub async fn get_questions(Query(params): Query<QuestionQuery>, State(state): State<AppState>) -> Json<Vec<Question>>{
+    let mut questions = state.questions.lock().await;
 
     if let Some(limit) = params.limit{
         questions.truncate(limit);
     }
 
-    Json(questions)
+    Json(questions.clone())
 }
 
 pub async fn get_question_by_id(Path(id): Path<u32>) -> Result<Json<Question>, StatusCode>{
@@ -37,11 +38,17 @@ pub async fn get_question_by_id(Path(id): Path<u32>) -> Result<Json<Question>, S
     }
 }
 
-pub async fn create_question(Json(payload): Json<CreateQuestion>) -> (StatusCode, Json<Question>){
+pub async fn create_question( State(state): State<AppState>, Json(payload): Json<CreateQuestion>) -> (StatusCode, Json<Question>){
+    let mut questions = state.questions.lock().await;
+
+    let new_id = questions.len() as u32 + 1;   
+
     let new_question = Question{
-        id: 999,
+        id: new_id,
         question: payload.question
     };
+
+    questions.push(new_question.clone());
 
     (StatusCode::CREATED, Json(new_question))
 }
