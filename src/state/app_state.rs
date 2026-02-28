@@ -1,10 +1,6 @@
-use std::sync::Arc;
-use tokio::sync::Mutex;
-
-use crate::models::question_data::Question;
-
+use sqlx::postgres::PgPool;
 
 #[derive(Clone)]
 pub struct AppState{
-    pub questions: Arc<Mutex<Vec<Question>>>
+    pub db: PgPool
 }
