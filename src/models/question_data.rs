@@ -1,8 +1,9 @@
 use serde::{Serialize, Deserialize};
+use sqlx::FromRow;
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Clone, FromRow)]
 pub struct Question {
-    pub id: u32,
+    pub id: i32,
     pub question: String,
 }
 
