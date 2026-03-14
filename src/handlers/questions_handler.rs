@@ -6,14 +6,22 @@ use crate::{models::question_data::{CreateQuestion, Question, QuestionQuery}};
 use crate::state::app_state::AppState;
 
 pub async fn get_questions(Query(params): Query<QuestionQuery>, State(state): State<AppState>) -> Result<Json<Vec<Question>>, StatusCode>{
-    let mut questions = sqlx::query_as::<_, Question>("SELECT id, question FROM questions")
+
+    
+    let questions = if let Some(limit) = params.limit{
+    sqlx::query_as::<_, Question>("SELECT id, question FROM questions LIMIT $1")
+        .bind(limit as i64)
         .fetch_all(&state.db)
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    if let Some(limit) = params.limit{
-        questions.truncate(limit);
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
     }
+    
+    else{
+    sqlx::query_as::<_, Question>("SELECT id, question FROM questions")
+        .fetch_all(&state.db)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+    };
 
     Ok(Json(questions))
 }
