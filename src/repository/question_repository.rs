@@ -3,8 +3,8 @@ use crate::models::question_data::Question;
 
 pub async fn get_all_questions(
     db: &PgPool,
-    limit: Qption<usize>
-) -> Result<Vec<Question>, sqlx::error>{
+    limit: Option<usize>
+) -> Result<Vec<Question>, sqlx::Error>{
     
     if let Some(limit) = limit{
         sqlx::query_as::<_, Question>(
