@@ -39,17 +39,26 @@ pub async fn create_question(
     db: &PgPool,
     question: &str
 ) -> Result<Question, sqlx::Error>{
-    let row = sqlx::query(
+    sqlx::query_as::<_, Question>(
         "INSERT INTO questions (question) VALUES ($1) RETURNING id, question"
     )
     .bind(question)
     .fetch_one(db)
-    .await?;
+    .await
+}
 
-    Ok(Question {
-        id: row.get("id"),
-        question: row.get("question"),
-    })
+pub async fn update_question(
+    db: &PgPool,
+    id: i32,
+    question: &str
+) -> Result<Option<Question>, sqlx::Error>{
+    sqlx::query_as::<_, Question>(
+        "UPDATE questions SET question = $1 WHERE id = $2 RETURNING id, question"
+    )
+    .bind(question)
+    .bind(id)
+    .fetch_optional(db)
+    .await
 }
 
 

@@ -16,3 +16,8 @@ pub struct QuestionQuery{
 pub struct CreateQuestion{
     pub question:String
 }
+
+#[derive(Deserialize)]
+pub struct UpdateQuestion{
+    pub question:String
+}
