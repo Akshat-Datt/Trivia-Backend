@@ -1,7 +1,6 @@
 use axum::{
     Json, extract::{Path, Query, State}, http::StatusCode
 };
-use sqlx::Row;
 use crate::{models::question_data::{CreateQuestion, Question, QuestionQuery}};
 use crate::state::app_state::AppState;
 use crate::repository::question_repository;
@@ -28,18 +27,7 @@ pub async fn get_question_by_id(State(state): State<AppState>, Path(id): Path<i3
 }
 
 pub async fn create_question( State(state): State<AppState>, Json(payload): Json<CreateQuestion>) -> Result<Json<Question>, StatusCode>{
-    let row = sqlx::query(
-        "INSERT INTO questions (question) VALUES ($1) RETURNING id, question"
-    )
-    .bind(&payload.question)
-    .fetch_one(&state.db)
-    .await
-    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    let question = Question {
-        id: row.get("id"),
-        question: row.get("question"),
-    };
+    let question = question_repository::create_question(&state.db, &payload.question).await.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     Ok(Json(question))
 }

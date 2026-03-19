@@ -1,4 +1,4 @@
-use sqlx::PgPool;
+use sqlx::{PgPool, Row};
 use crate::models::question_data::Question;
 
 pub async fn get_all_questions(
@@ -33,6 +33,23 @@ pub async fn get_question_by_id(
     .bind(id)
     .fetch_optional(db)
     .await
+}
+
+pub async fn create_question(
+    db: &PgPool,
+    question: &str
+) -> Result<Question, sqlx::Error>{
+    let row = sqlx::query(
+        "INSERT INTO questions (question) VALUES ($1) RETURNING id, question"
+    )
+    .bind(question)
+    .fetch_one(db)
+    .await?;
+
+    Ok(Question {
+        id: row.get("id"),
+        question: row.get("question"),
+    })
 }
 
 
