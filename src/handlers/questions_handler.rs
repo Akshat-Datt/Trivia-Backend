@@ -17,11 +17,7 @@ pub async fn get_questions(Query(params): Query<QuestionQuery>, State(state): St
 }
 
 pub async fn get_question_by_id(State(state): State<AppState>, Path(id): Path<i32>) -> Result<Json<Question>, StatusCode>{
-    let question = sqlx::query_as::<_, Question>(
-        "SELECT id, question FROM questions WHERE id = $1"
-    )
-    .bind(id)
-    .fetch_optional(&state.db)
+    let question = question_repository::get_question_by_id(&state.db, id)
     .await
     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 

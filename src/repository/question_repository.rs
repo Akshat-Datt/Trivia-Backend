@@ -22,3 +22,17 @@ pub async fn get_all_questions(
         .await
     }
 }
+
+pub async fn get_question_by_id(
+    db: &PgPool,
+    id: i32
+) -> Result<Option<Question>, sqlx::Error>{
+    sqlx::query_as::<_, Question>(
+        "SELECT id, question FROM questions WHERE id = $1"
+    )
+    .bind(id)
+    .fetch_optional(db)
+    .await
+}
+
+
