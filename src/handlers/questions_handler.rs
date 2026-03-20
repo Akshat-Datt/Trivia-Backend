@@ -40,3 +40,13 @@ pub async fn update_question( State(state): State<AppState>, Path(id): Path<i32>
         None => Err(StatusCode::NOT_FOUND)
     }
 }
+
+pub async fn delete_question(State(state): State<AppState>, Path(id): Path<i32>) -> Result<StatusCode, StatusCode>{
+    let deleted = question_repository::delete_question(&state.db, id).await.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    if deleted {
+        Ok(StatusCode::NO_CONTENT)
+    } else {
+        Err(StatusCode::NOT_FOUND)
+    }
+}

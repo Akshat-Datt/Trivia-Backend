@@ -1,4 +1,6 @@
-use sqlx::{PgPool, Row};
+
+
+use sqlx::{PgPool};
 use crate::models::question_data::Question;
 
 pub async fn get_all_questions(
@@ -59,6 +61,20 @@ pub async fn update_question(
     .bind(id)
     .fetch_optional(db)
     .await
+}
+
+pub async fn delete_question(
+    db: &PgPool,
+    id: i32
+) -> Result<bool, sqlx::Error>{
+    let result = sqlx::query(
+        "DELETE FROM questions WHERE id = $1"
+    )
+    .bind(id)
+    .execute(db)
+    .await?;
+
+    Ok(result.rows_affected() > 0)
 }
 
 
