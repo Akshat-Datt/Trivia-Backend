@@ -1,7 +1,6 @@
-use sqlx::PgPool;
+use sqlx::{PgPool};
 use crate::{
-    models::question_data::Question,
-    repository::question_repository
+    errors::errors::AppError, models::question_data::Question, repository::question_repository
 };
 
 pub async fn get_questions(
@@ -21,8 +20,16 @@ pub async fn get_question_by_id(
 pub async fn create_question(
     db: &PgPool,
     question: &str
-) -> Result<Question, sqlx::Error>{
-    return question_repository::create_question(db, question).await;
+) -> Result<Question, AppError>{
+    let question = question.trim();
+
+    if question.is_empty(){
+        return Err(AppError::ValidationError("Question cannot be empty".to_string()));
+    }
+
+    return question_repository::create_question(db, question)
+    .await
+    .map_err(|_| AppError::DatabaseError);
 }
 
 pub async fn update_question(

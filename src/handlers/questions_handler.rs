@@ -1,7 +1,7 @@
 use axum::{
     Json, extract::{Path, Query, State}, http::StatusCode
 };
-use crate::models::question_data::{CreateQuestion, Question, QuestionQuery, UpdateQuestion};
+use crate::{errors::errors::AppError, models::question_data::{CreateQuestion, Question, QuestionQuery, UpdateQuestion}};
 use crate::state::app_state::AppState;
 use crate::services::question_service;
 
@@ -25,9 +25,13 @@ pub async fn get_question_by_id(State(state): State<AppState>, Path(id): Path<i3
 }
 
 pub async fn create_question( State(state): State<AppState>, Json(payload): Json<CreateQuestion>) -> Result<Json<Question>, StatusCode>{
-    let question = question_service::create_question(&state.db, &payload.question).await.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let question = question_service::create_question(&state.db, &payload.question).await;
 
-    Ok(Json(question))
+    match question {
+        Ok(question) => Ok(Json(question)),
+        Err(AppError::ValidationError(_)) => Err(StatusCode::BAD_REQUEST),
+        Err(AppError::DatabaseError) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+    }
 }
 
 pub async fn update_question( State(state): State<AppState>, Path(id): Path<i32>, Json(payload): Json<UpdateQuestion>) -> Result<Json<Question>, StatusCode>{
