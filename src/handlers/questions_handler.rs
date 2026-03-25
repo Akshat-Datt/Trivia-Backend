@@ -24,14 +24,10 @@ pub async fn get_question_by_id(State(state): State<AppState>, Path(id): Path<i3
     }
 }
 
-pub async fn create_question( State(state): State<AppState>, Json(payload): Json<CreateQuestion>) -> Result<Json<Question>, StatusCode>{
-    let question = question_service::create_question(&state.db, &payload.question).await;
+pub async fn create_question( State(state): State<AppState>, Json(payload): Json<CreateQuestion>) -> Result<Json<Question>, AppError>{
+    let question = question_service::create_question(&state.db, &payload.question).await?;
 
-    match question {
-        Ok(question) => Ok(Json(question)),
-        Err(AppError::ValidationError(_)) => Err(StatusCode::BAD_REQUEST),
-        Err(AppError::DatabaseError) => Err(StatusCode::INTERNAL_SERVER_ERROR),
-    }
+    Ok(Json(question))
 }
 
 pub async fn update_question( State(state): State<AppState>, Path(id): Path<i32>, Json(payload): Json<UpdateQuestion>) -> Result<Json<Question>, StatusCode>{

@@ -24,7 +24,10 @@ pub async fn create_question(
     let question = question.trim();
 
     if question.is_empty(){
+        println!("{:?}", AppError::ValidationError("Question cannot be empty".to_string()));
+
         return Err(AppError::ValidationError("Question cannot be empty".to_string()));
+
     }
 
     return question_repository::create_question(db, question)
