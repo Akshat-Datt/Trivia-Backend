@@ -7,6 +7,8 @@ use axum::{
 #[derive(Debug)]
 pub enum AppError{
     ValidationError(String),
+    NotFound(String),
+    Deleted,
     DatabaseError
 }
 
@@ -15,6 +17,14 @@ impl IntoResponse for AppError{
         match self {
             AppError::ValidationError(msg) => {
                 (StatusCode::BAD_REQUEST, Json(msg)).into_response()
+            },
+
+            AppError::NotFound(msg) => {
+                (StatusCode::NOT_FOUND, Json(msg)).into_response()
+            },
+
+            AppError::Deleted => {
+                (StatusCode::NO_CONTENT, Json("Resource deleted".to_string())).into_response()
             },
 
             AppError::DatabaseError => {
