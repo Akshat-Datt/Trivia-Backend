@@ -1,5 +1,5 @@
 use axum::{
-    Json, extract::{Path, Query, State}
+    Json, extract::{Path, Query, State}, http::StatusCode
 };
 use crate::{errors::errors::AppError, models::question_data::{CreateQuestion, Question, QuestionQuery, UpdateQuestion}};
 use crate::state::app_state::AppState;
@@ -25,16 +25,16 @@ pub async fn create_question( State(state): State<AppState>, Json(payload): Json
 }
 
 pub async fn update_question( State(state): State<AppState>, Path(id): Path<i32>, Json(payload): Json<UpdateQuestion>) -> Result<Json<Question>, AppError>{
-    let question = question_service::update_question(&state.db, id, &payload.question).await.map_err(|_| AppError::DatabaseError)?;
+    let question = question_service::update_question(&state.db, id, &payload.question).await?;
 
     Ok(Json(question))
 }
 
-pub async fn delete_question(State(state): State<AppState>, Path(id): Path<i32>) -> Result<AppError, AppError>{
-    let deleted = question_service::delete_question(&state.db, id).await.map_err(|_| AppError::DatabaseError)?;
+pub async fn delete_question(State(state): State<AppState>, Path(id): Path<i32>) -> Result<StatusCode, AppError>{
+    let deleted = question_service::delete_question(&state.db, id).await?;
 
     if deleted {
-        Ok(AppError::Deleted)
+        Ok(StatusCode::NO_CONTENT)
     } else {
         Err(AppError::NotFound("Question not found".to_string()))
     }
