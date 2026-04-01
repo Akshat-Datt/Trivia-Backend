@@ -10,7 +10,7 @@ pub async fn get_all_questions(
     
     if let Some(limit) = limit{
         sqlx::query_as::<_, Question>(
-            "SELECT id, question FROM questions LIMIT $1"
+            "SELECT id, question, options, answer FROM questions LIMIT $1"
         )
         .bind(limit as i64)
         .fetch_all(db)
@@ -18,7 +18,7 @@ pub async fn get_all_questions(
     }
     else{
         sqlx::query_as::<_, Question>(
-            "SELECT id, question FROM questions"
+            "SELECT id, question, options, answer FROM questions"
         )
         .fetch_all(db)
         .await
@@ -30,7 +30,7 @@ pub async fn get_question_by_id(
     id: i32
 ) -> Result<Option<Question>, sqlx::Error>{
     sqlx::query_as::<_, Question>(
-        "SELECT id, question FROM questions WHERE id = $1"
+        "SELECT id, question, options, answer FROM questions WHERE id = $1"
     )
     .bind(id)
     .fetch_optional(db)
@@ -39,12 +39,16 @@ pub async fn get_question_by_id(
 
 pub async fn create_question(
     db: &PgPool,
-    question: &str
+    question: &str,
+    options: &Vec<String>,
+    answer: &i32
 ) -> Result<Question, sqlx::Error>{
     sqlx::query_as::<_, Question>(
-        "INSERT INTO questions (question) VALUES ($1) RETURNING id, question"
+        "INSERT INTO questions (question, options, answer) VALUES ($1, $2, $3) RETURNING id, question, options, answer"
     )
     .bind(question)
+    .bind(options)
+    .bind(answer)
     .fetch_one(db)
     .await
 }
@@ -52,13 +56,17 @@ pub async fn create_question(
 pub async fn update_question(
     db: &PgPool,
     id: i32,
-    question: &str
+    question: &str,
+    options: &Vec<String>,
+    answer: &i32
 ) -> Result<Option<Question>, sqlx::Error>{
     sqlx::query_as::<_, Question>(
-        "UPDATE questions SET question = $1 WHERE id = $2 RETURNING id, question"
+        "UPDATE questions SET question = $1, options = $3, answer =$4 WHERE id = $2 RETURNING id, question"
     )
     .bind(question)
     .bind(id)
+    .bind(options)
+    .bind(answer)
     .fetch_optional(db)
     .await
 }

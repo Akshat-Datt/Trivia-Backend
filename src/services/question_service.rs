@@ -33,7 +33,9 @@ pub async fn get_question_by_id(
 
 pub async fn create_question(
     db: &PgPool,
-    question: &str
+    question: &str,
+    options: &Vec<String>,
+    answer: &i32
 ) -> Result<Question, AppError>{
     let question = question.trim();
 
@@ -41,10 +43,13 @@ pub async fn create_question(
         println!("{:?}", AppError::ValidationError("Question cannot be empty".to_string()));
 
         return Err(AppError::ValidationError("Question cannot be empty".to_string()));
-
     }
 
-    return question_repository::create_question(db, question)
+    // if(answer < &0 || answer >= options.len() as i32){
+    //     return Err(AppError::ValidationError("Answer index is out of bounds".to_string()));
+    // }
+
+    return question_repository::create_question(db, question, options, answer)
     .await
     .map_err(|_| AppError::DatabaseError);
 }
@@ -52,7 +57,9 @@ pub async fn create_question(
 pub async fn update_question(
     db: &PgPool,
     id: i32,
-    question: &str
+    question: &str,
+    options: &Vec<String>,
+    answer: &i32
 ) -> Result<Question, AppError>{
     let question = question.trim();
 
@@ -69,7 +76,7 @@ pub async fn update_question(
 
     }
 
-    let question = question_repository::update_question(db, id, question).await.map_err(|_| AppError::DatabaseError)?;
+    let question = question_repository::update_question(db, id, question, options, answer).await.map_err(|_| AppError::DatabaseError)?;
 
     match question {
         Some(q) => Ok(q),

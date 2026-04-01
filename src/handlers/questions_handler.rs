@@ -19,13 +19,13 @@ pub async fn get_question_by_id(State(state): State<AppState>, Path(id): Path<i3
 }
 
 pub async fn create_question( State(state): State<AppState>, Json(payload): Json<CreateQuestion>) -> Result<Json<Question>, AppError>{
-    let question = question_service::create_question(&state.db, &payload.question).await?;
+    let question = question_service::create_question(&state.db, &payload.question, &payload.options, &payload.answer).await?;
 
     Ok(Json(question))
 }
 
 pub async fn update_question( State(state): State<AppState>, Path(id): Path<i32>, Json(payload): Json<UpdateQuestion>) -> Result<Json<Question>, AppError>{
-    let question = question_service::update_question(&state.db, id, &payload.question).await?;
+    let question = question_service::update_question(&state.db, id, &payload.question, &payload.options, &payload.answer).await?;
 
     Ok(Json(question))
 }
