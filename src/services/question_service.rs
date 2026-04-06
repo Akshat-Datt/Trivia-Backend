@@ -53,6 +53,12 @@ pub async fn create_question(
         return Err(AppError::ValidationError("Four options are required".to_string()));
     }
 
+    for option_item in options{
+        if option_item.trim().is_empty(){
+            return Err(AppError::ValidationError("Options cannot be empty".to_string()));
+        }
+    }
+
     return question_repository::create_question(db, question, options, &answer)
     .await
     .map_err(|_| AppError::DatabaseError);
@@ -86,6 +92,12 @@ pub async fn update_question(
 
     if options.len() < 4 || options.len() > 4 {
         return Err(AppError::ValidationError("Four options are required".to_string()));
+    }
+
+    for option_item in options{
+        if option_item.trim().is_empty(){
+            return Err(AppError::ValidationError("Options cannot be empty".to_string()));
+        }
     }
 
     let question = question_repository::update_question(db, id, question, options, &answer).await.map_err(|_| AppError::DatabaseError)?;
