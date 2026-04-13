@@ -1,14 +1,24 @@
 use axum::{
     Json, extract::{Path, Query, State}, http::StatusCode
 };
-use crate::{errors::errors::AppError, models::question_data::{CreateQuestion, Question, QuestionQuery, UpdateQuestion}};
+use crate::{errors::errors::AppError, models::question_data::{CreateQuestion, Question, QuestionQuery, UpdateQuestion}, dto::question_response::{QuestionAdmin, QuestionPublic}};
 use crate::state::app_state::AppState;
 use crate::services::question_service;
 
-pub async fn get_questions(Query(params): Query<QuestionQuery>, State(state): State<AppState>) -> Result<Json<Vec<Question>>, AppError>{
+pub async fn get_questions_public(Query(params): Query<QuestionQuery>, State(state): State<AppState>) -> Result<Json<Vec<QuestionPublic>>, AppError>{
     let questions = question_service::get_questions(&state.db, params.limit).await?;
 
-    Ok(Json(questions))
+    let public: Vec<QuestionPublic> = questions.into_iter().map(QuestionPublic::from).collect();
+
+    Ok(Json(public))
+}
+
+pub async fn get_questions_admin(Query(params): Query<QuestionQuery>, State(state): State<AppState>) -> Result<Json<Vec<QuestionAdmin>>, AppError>{
+    let questions = question_service::get_questions(&state.db, params.limit).await?;
+
+    let admin: Vec<QuestionAdmin> = questions.into_iter().map(QuestionAdmin::from).collect();
+
+    Ok(Json(admin))
 }
 
 pub async fn get_question_by_id(State(state): State<AppState>, Path(id): Path<i32>) -> Result<Json<Question>, AppError>{
