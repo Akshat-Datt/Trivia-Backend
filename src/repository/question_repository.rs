@@ -1,5 +1,6 @@
 
 
+
 use sqlx::{PgPool};
 use crate::models::question_data::Question;
 
@@ -51,6 +52,20 @@ pub async fn create_question(
     .bind(answer)
     .fetch_one(db)
     .await
+}
+
+pub async fn question_duplicate_check(
+    db: &PgPool,
+    question: &str
+) -> Result<bool, sqlx::Error>{
+    let result = sqlx::query(
+        "SELECT 1 FROM questions WHERE question = $1"
+    )
+    .bind(question)
+    .fetch_optional(db)
+    .await?;
+
+    Ok(result.is_some())
 }
 
 pub async fn update_question(

@@ -7,7 +7,8 @@ use serde::Serialize;
 pub enum AppError{
     ValidationError(String),
     NotFound(String),
-    DatabaseError
+    DatabaseError,
+    Conflict(String)
 }
 
 #[derive(Serialize)]
@@ -32,6 +33,10 @@ impl IntoResponse for AppError{
             AppError::DatabaseError => {
                 let body = ErrorResponse {error : "Something went wrong".to_string()};
                 (StatusCode::INTERNAL_SERVER_ERROR, Json(body)).into_response()
+            },
+            AppError::Conflict(msg) => {
+                let body = ErrorResponse {error : msg};
+                (StatusCode::CONFLICT, Json(body)).into_response()
             }
         }
     }

@@ -40,9 +40,11 @@ pub async fn create_question(
     let question = question.trim();
 
     if question.is_empty(){
-        println!("{:?}", AppError::ValidationError("Question cannot be empty".to_string()));
-
         return Err(AppError::ValidationError("Question cannot be empty".to_string()));
+    }
+
+    if question_repository::question_duplicate_check(db, question).await.map_err(|_| AppError::DatabaseError)?{
+        return Err(AppError::Conflict("Question already exists".to_string()));
     }
 
     if answer < 0 || answer >= options.len() as i32{
