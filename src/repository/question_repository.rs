@@ -59,7 +59,7 @@ pub async fn question_duplicate_check(
     question: &str
 ) -> Result<bool, sqlx::Error>{
     let result = sqlx::query(
-        "SELECT 1 FROM questions WHERE question = $1"
+        "SELECT 1 FROM questions WHERE LOWER(question) = LOWER($1)"
     )
     .bind(question)
     .fetch_optional(db)
