@@ -33,7 +33,7 @@ async fn main() {
         .with_state(shared_state);
 
     axum::serve(
-        tokio::net::TcpListener::bind("0.0.0.0:3000")
+        tokio::net::TcpListener::bind("0.0.0.0:9090")
             .await
             .unwrap(),
         app,
