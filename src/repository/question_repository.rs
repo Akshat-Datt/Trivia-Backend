@@ -1,6 +1,6 @@
 use std::{collections::HashMap};
 use sqlx::{PgPool};
-use crate::models::question_data::{Question, QuestionAnswer};
+use crate::models::question_data::{Question, QuestionAnswer, QuestionMaxOptions};
 
 pub async fn get_all_questions(
     db: &PgPool,
@@ -69,6 +69,49 @@ pub async fn get_answers(
     }
 
     Ok(answers_map)
+}
+
+pub async fn questions_count(
+    db: &PgPool
+) -> Result<i64, sqlx::Error> {
+    let result = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM questions"
+    ).fetch_one(db).await?;
+
+    Ok(result)
+}
+
+pub async fn validation_questions(
+    db: &PgPool,
+    question_ids: &Vec<i32>
+) -> Result<bool, sqlx::Error>{
+    let result = sqlx::query_scalar::<_, i32>(
+        "SELECT id FROM questions WHERE id = ANY($1)"
+    ).bind(question_ids)
+    .fetch_all(db)
+    .await?;
+
+    Ok(result.len() == question_ids.len())
+}
+
+pub async fn each_question_options_count(
+    db: &PgPool
+) -> Result<HashMap<i32, i32>, sqlx::Error>{
+    let rows = sqlx::query_as::<_, QuestionMaxOptions>(
+        "SELECT id, array_length(options, 1) as options_len
+FROM questions"
+    )
+    .fetch_all(db)
+    .await?;
+
+    let mut options_count_map = HashMap::new();
+
+    for row in rows{
+        println!("ID: {}, Options Count: {}", row.id, row.options_len);
+        options_count_map.insert(row.id, row.options_len);
+    }
+
+    Ok(options_count_map)
 }
 
 pub async fn question_duplicate_check(

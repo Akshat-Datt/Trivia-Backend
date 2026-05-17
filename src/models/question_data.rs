@@ -46,3 +46,9 @@ pub struct QuestionAnswer{
     pub id: i32,
     pub answer: i32
 }
+
+#[derive(FromRow)]
+pub struct QuestionMaxOptions{
+    pub id: i32,
+    pub options_len: i32
+}
