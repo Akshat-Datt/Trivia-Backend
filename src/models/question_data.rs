@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::{Serialize, Deserialize};
 use sqlx::FromRow;
 
@@ -25,5 +27,22 @@ pub struct CreateQuestion{
 pub struct UpdateQuestion{
     pub question:String,
     pub options: Vec<String>,
+    pub answer: i32
+}
+
+
+#[derive(Deserialize, Debug)]
+pub struct SubmitQuiz{
+    pub answers_map: HashMap<i32, i32>
+}
+
+#[derive(Serialize)]
+pub struct Score{
+    pub score: i32
+}
+
+#[derive(FromRow)]
+pub struct QuestionAnswer{
+    pub id: i32,
     pub answer: i32
 }

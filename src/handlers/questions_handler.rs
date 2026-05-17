@@ -1,7 +1,7 @@
 use axum::{
     Json, extract::{Path, Query, State}, http::StatusCode
 };
-use crate::{errors::errors::AppError, models::question_data::{CreateQuestion, Question, QuestionQuery, UpdateQuestion}, dto::question_response::{QuestionAdmin, QuestionPublic}};
+use crate::{dto::question_response::{QuestionAdmin, QuestionPublic}, errors::errors::AppError, models::question_data::{CreateQuestion, Question, QuestionQuery, Score, SubmitQuiz, UpdateQuestion}};
 use crate::state::app_state::AppState;
 use crate::services::question_service;
 
@@ -32,6 +32,12 @@ pub async fn create_question( State(state): State<AppState>, Json(payload): Json
     let question = question_service::create_question(&state.db, &payload.question, &payload.options, payload.answer).await?;
 
     Ok(Json(question))
+}
+
+pub async fn submit_quiz(State(state): State<AppState>, Json(payload): Json<SubmitQuiz>) -> Result<Json<Score>, AppError>{
+    let score = question_service::get_answers(&state.db, &payload.answers_map).await?;
+
+    Ok(Json(score))
 }
 
 pub async fn update_question( State(state): State<AppState>, Path(id): Path<i32>, Json(payload): Json<UpdateQuestion>) -> Result<Json<Question>, AppError>{

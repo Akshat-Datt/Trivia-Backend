@@ -1,8 +1,6 @@
-
-
-
+use std::{collections::HashMap};
 use sqlx::{PgPool};
-use crate::models::question_data::Question;
+use crate::models::question_data::{Question, QuestionAnswer};
 
 pub async fn get_all_questions(
     db: &PgPool,
@@ -52,6 +50,25 @@ pub async fn create_question(
     .bind(answer)
     .fetch_one(db)
     .await
+}
+
+pub async fn get_answers(
+    db: &PgPool,
+)->Result<HashMap<i32, i32>, sqlx::Error>{
+    let rows = sqlx::query_as::<_, QuestionAnswer>(
+        "SELECT id, answer FROM questions"
+    )
+    .fetch_all(db)
+    .await?;
+
+    let mut answers_map = HashMap::new();
+
+    for row in rows{
+        println!("ID: {}, Answer: {}", row.id, row.answer);
+        answers_map.insert(row.id, row.answer);
+    }
+
+    Ok(answers_map)
 }
 
 pub async fn question_duplicate_check(

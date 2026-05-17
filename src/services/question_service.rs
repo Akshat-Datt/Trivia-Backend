@@ -1,6 +1,6 @@
 use sqlx::{PgPool};
 use crate::{
-    errors::errors::AppError, models::question_data::Question, repository::question_repository
+    errors::errors::AppError, models::question_data::{Question, Score}, repository::question_repository
 };
 
 pub async fn get_questions(
@@ -64,6 +64,29 @@ pub async fn create_question(
     return question_repository::create_question(db, question, options, &answer)
     .await
     .map_err(|_| AppError::DatabaseError);
+}
+
+pub async fn get_answers(
+    db: &PgPool,
+    fetched_map: &std::collections::HashMap<i32, i32>
+) -> Result<Score, AppError>{
+    let answers_map = question_repository::get_answers(db)
+    .await
+    .map_err(|_| AppError::DatabaseError)?;
+
+    println!("Correct answers map: {:?}", answers_map);
+
+    let mut score = 0;
+
+    for(key, value) in answers_map.iter(){
+        if fetched_map.get(key) == Some(value){
+            score += 1;
+        }
+    }
+
+    let final_score = Score{score: score};
+
+    return Ok(final_score);
 }
 
 pub async fn update_question(
