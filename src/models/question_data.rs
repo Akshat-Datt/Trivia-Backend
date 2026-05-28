@@ -28,11 +28,6 @@ pub struct UpdateQuestion{
     pub answer: i32
 }
 
-#[derive(Serialize)]
-pub struct Score{
-    pub score: i32
-}
-
 #[derive(FromRow)]
 pub struct QuestionAnswer{
     pub id: i32,

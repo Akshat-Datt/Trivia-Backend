@@ -1,6 +1,6 @@
 use sqlx::{PgPool};
 use crate::{
-    errors::errors::AppError, models::question_data::{Question, Score}, repository::question_repository
+    dto::score_response::{ScoreResponse}, errors::errors::AppError, models::question_data::Question, repository::question_repository::{self}
 };
 
 pub async fn get_questions(
@@ -69,15 +69,17 @@ pub async fn create_question(
 pub async fn get_answers(
     db: &PgPool,
     fetched_map: &std::collections::HashMap<i32, i32>
-) -> Result<Score, AppError>{
+) -> Result<ScoreResponse, AppError>{
 
     let question_ids: Vec<i32> = fetched_map.keys().cloned().collect();
+
+    let questions_count = question_repository::questions_count(db).await.map_err(|_| AppError::DatabaseError)?;
 
     if fetched_map.is_empty(){
         return Err(AppError::ValidationError("Submission cannot be empty".to_string()));
     }
 
-    if fetched_map.len() != question_repository::questions_count(db).await.map_err(|_| AppError::DatabaseError)? as usize{
+    if fetched_map.len() != questions_count as usize{
         return Err(AppError::ValidationError("Submission must contain answers for all questions".to_string()));
     }
 
@@ -107,9 +109,15 @@ pub async fn get_answers(
         }
     }
 
-    let final_score = Score{score: score};
+    let accuracy = (score as f64 / answers_map.len() as f64) * 100.0;
 
-    return Ok(final_score);
+    let score_response = ScoreResponse{
+        score: score,
+        total_questions: questions_count as i32,
+        accuracy: accuracy as f32
+    };
+
+    return Ok(score_response);
 }
 
 pub async fn update_question(
