@@ -91,6 +91,8 @@ pub async fn validation_questions(
     .fetch_all(db)
     .await?;
 
+    // if questions length and fetched length are same, then all question ids are valid
+
     Ok(result.len() == question_ids.len())
 }
 
