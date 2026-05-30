@@ -128,14 +128,10 @@ pub async fn update_question(
     let question = question.trim();
 
     if id <= 0 {
-        println!("{:?}", AppError::ValidationError("ID must be greater than 0".to_string()));
-
         return Err(AppError::ValidationError("ID must be greater than 0".to_string()));
     }
 
     if question.is_empty(){
-        println!("{:?}", AppError::ValidationError("Question cannot be empty".to_string()));
-
         return Err(AppError::ValidationError("Question cannot be empty".to_string()));
 
     }
@@ -167,8 +163,6 @@ pub async fn delete_question(
     id: i32
 ) -> Result<bool, AppError>{
     if id <= 0 {
-        println!("{:?}", AppError::ValidationError("ID must be greater than 0".to_string()));
-
         return Err(AppError::ValidationError("ID must be greater than 0".to_string()));
     }
 

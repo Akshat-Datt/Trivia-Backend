@@ -108,7 +108,6 @@ FROM questions"
     let mut options_count_map = HashMap::new();
 
     for row in rows{
-        println!("ID: {}, Options Count: {}", row.id, row.options_len);
         options_count_map.insert(row.id, row.options_len);
     }
 
