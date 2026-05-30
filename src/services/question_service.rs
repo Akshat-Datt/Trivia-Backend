@@ -99,8 +99,6 @@ pub async fn get_answers(
     .await
     .map_err(|_| AppError::DatabaseError)?;
 
-    println!("Correct answers map: {:?}", answers_map);
-
     let mut score = 0;
 
     for(key, value) in answers_map.iter(){

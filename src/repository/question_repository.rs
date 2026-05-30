@@ -64,7 +64,6 @@ pub async fn get_answers(
     let mut answers_map = HashMap::new();
 
     for row in rows{
-        println!("ID: {}, Answer: {}", row.id, row.answer);
         answers_map.insert(row.id, row.answer);
     }
 
