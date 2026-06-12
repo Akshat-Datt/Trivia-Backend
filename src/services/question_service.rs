@@ -90,7 +90,7 @@ pub async fn get_answers(
     let options_len_map = question_repository::each_question_options_count(db).await.map_err(|_| AppError::DatabaseError)?;
 
     for (key,value) in fetched_map.iter(){
-        if *value < 0 || *value >= *options_len_map.get(key).unwrap_or(&0){
+        if *value != -1 && (*value < 0 || *value >= *options_len_map.get(key).unwrap_or(&0)){
             return Err(AppError::ValidationError(format!("Answer index for question ID {} is out of bounds", key)));
         }
     }
