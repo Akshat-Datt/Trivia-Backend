@@ -41,7 +41,7 @@ pub async fn submit_quiz(State(state): State<AppState>, Json(payload): Json<Quiz
 }
 
 pub async fn update_question( State(state): State<AppState>, Path(id): Path<i32>, Json(payload): Json<UpdateQuestion>) -> Result<Json<Question>, AppError>{
-    let question = question_service::update_question(&state.db, id, &payload.question, &payload.options, payload.answer).await?;
+    let question = question_service::update_question(&state.db, id, &payload.question_text, &payload.options, payload.answer_index, payload.platform_id, payload.content_type_id, &payload.difficulty, payload.challenge_date, payload.is_active).await?;
 
     Ok(Json(question))
 }

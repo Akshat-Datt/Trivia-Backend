@@ -1,5 +1,6 @@
 use std::{collections::HashMap};
 use sqlx::{PgPool};
+use chrono::{NaiveDate};
 use crate::models::question_data::{Question, QuestionAnswer, QuestionMaxOptions};
 
 pub async fn get_all_questions(
@@ -44,7 +45,7 @@ pub async fn create_question(
     platform_id: &i32,
     content_type_id: &i32,
     difficulty: &str,
-    challenge_date: Option<chrono::NaiveDate>,
+    challenge_date: Option<NaiveDate>,
     is_active: &bool
 ) -> Result<Question, sqlx::Error>{
     sqlx::query_as::<_, Question>(
@@ -141,17 +142,27 @@ pub async fn question_duplicate_check(
 pub async fn update_question(
     db: &PgPool,
     id: i32,
-    question: &str,
+    question_text: &str,
     options: &Vec<String>,
-    answer: &i32
+    answer_index: &i32,
+    platform_id: &i32,
+    content_type_id: &i32,
+    difficulty: &str,
+    challenge_date: Option<NaiveDate>,
+    is_active: &bool
 ) -> Result<Option<Question>, sqlx::Error>{
     sqlx::query_as::<_, Question>(
-        "UPDATE questions SET question = $1, options = $3, answer =$4 WHERE id = $2 RETURNING id, question"
+        "UPDATE question_bank SET question_text = $1, options = $3, answer_index =$4, platform_id =$5, content_type_id =$6, difficulty =$7, challenge_date =$8, is_active =$9 WHERE id = $2 RETURNING id, question_text, options, answer_index, platform_id, content_type_id, difficulty, challenge_date, is_active, created_at, updated_at"
     )
-    .bind(question)
+    .bind(question_text)
     .bind(id)
     .bind(options)
-    .bind(answer)
+    .bind(answer_index)
+    .bind(platform_id)
+    .bind(content_type_id)
+    .bind(difficulty)
+    .bind(challenge_date)
+    .bind(is_active)
     .fetch_optional(db)
     .await
 }
@@ -161,7 +172,7 @@ pub async fn delete_question(
     id: i32
 ) -> Result<bool, sqlx::Error>{
     let result = sqlx::query(
-        "DELETE FROM questions WHERE id = $1"
+        "DELETE FROM question_bank WHERE id = $1"
     )
     .bind(id)
     .execute(db)

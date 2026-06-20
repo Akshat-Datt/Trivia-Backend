@@ -128,7 +128,12 @@ pub async fn update_question(
     id: i32,
     question: &str,
     options: &Vec<String>,
-    answer: i32
+    answer: i32,
+    platform_id: i32,
+    content_type_id: i32,
+    difficulty: &str,
+    challenge_date: Option<chrono::NaiveDate>,
+    is_active: bool
 ) -> Result<Question, AppError>{
     let question = question.trim();
 
@@ -155,7 +160,7 @@ pub async fn update_question(
         }
     }
 
-    let question = question_repository::update_question(db, id, question, options, &answer).await.map_err(|_| AppError::DatabaseError)?;
+    let question = question_repository::update_question(db, id, question, options, &answer, &platform_id, &content_type_id, difficulty, challenge_date, &is_active).await.map_err(|_| AppError::DatabaseError)?;
 
     match question {
         Some(q) => Ok(q),

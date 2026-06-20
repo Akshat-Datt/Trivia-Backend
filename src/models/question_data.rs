@@ -46,9 +46,17 @@ pub struct CreateQuestion{
 
 #[derive(Deserialize)]
 pub struct UpdateQuestion{
-    pub question:String,
+    pub question_text:String,
     pub options: Vec<String>,
-    pub answer: i32
+    pub answer_index: i32,
+    pub platform_id: i32,
+    pub content_type_id: i32,
+
+    pub difficulty: String,
+
+    pub challenge_date: Option<NaiveDate>,
+
+    pub is_active: bool,
 }
 
 #[derive(FromRow)]
