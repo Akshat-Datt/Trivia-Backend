@@ -40,14 +40,24 @@ pub async fn create_question(
     db: &PgPool,
     question_text: &str,
     options: &Vec<String>,
-    answer_index: &i32
+    answer_index: &i32,
+    platform_id: &i32,
+    content_type_id: &i32,
+    difficulty: &str,
+    challenge_date: Option<chrono::NaiveDate>,
+    is_active: &bool
 ) -> Result<Question, sqlx::Error>{
     sqlx::query_as::<_, Question>(
-        "INSERT INTO questions (question_text, options, answer_index) VALUES ($1, $2, $3) RETURNING id, question_text, options, answer_index"
+        "INSERT INTO question_bank (question_text, options, answer_index, platform_id, content_type_id, difficulty, challenge_date, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, question_text, options, answer_index, platform_id, content_type_id, difficulty, challenge_date, is_active, created_at, updated_at"
     )
     .bind(question_text)
     .bind(options)
     .bind(answer_index)
+    .bind(platform_id)
+    .bind(content_type_id)
+    .bind(difficulty)
+    .bind(challenge_date)
+    .bind(is_active)
     .fetch_one(db)
     .await
 }

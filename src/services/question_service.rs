@@ -35,7 +35,12 @@ pub async fn create_question(
     db: &PgPool,
     question: &str,
     options: &Vec<String>,
-    answer: i32
+    answer: i32,
+    platform_id: i32,
+    content_type_id: i32,
+    difficulty: &str,
+    challenge_date: Option<chrono::NaiveDate>,
+    is_active: bool
 ) -> Result<Question, AppError>{
     let question = question.trim();
 
@@ -61,7 +66,7 @@ pub async fn create_question(
         }
     }
 
-    return question_repository::create_question(db, question, options, &answer)
+    return question_repository::create_question(db, question, options, &answer, &platform_id, &content_type_id, difficulty, challenge_date, &is_active)
     .await
     .map_err(|_| AppError::DatabaseError);
 }
