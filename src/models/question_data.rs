@@ -62,7 +62,7 @@ pub struct UpdateQuestion{
 #[derive(FromRow)]
 pub struct QuestionAnswer{
     pub id: i32,
-    pub answer: i32
+    pub answer_index: i32
 }
 
 #[derive(FromRow)]

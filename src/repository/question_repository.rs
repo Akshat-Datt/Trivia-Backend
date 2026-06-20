@@ -30,7 +30,7 @@ pub async fn get_question_by_id(
     id: i32
 ) -> Result<Option<Question>, sqlx::Error>{
     sqlx::query_as::<_, Question>(
-        "SELECT id, question, options, answer FROM questions WHERE id = $1"
+        "SELECT id, question_text, options, answer_index, platform_id, content_type_id, difficulty, challenge_date, is_active, created_at, updated_at FROM question_bank WHERE id = $1"
     )
     .bind(id)
     .fetch_optional(db)
@@ -67,7 +67,7 @@ pub async fn get_answers(
     db: &PgPool,
 )->Result<HashMap<i32, i32>, sqlx::Error>{
     let rows = sqlx::query_as::<_, QuestionAnswer>(
-        "SELECT id, answer FROM questions"
+        "SELECT id, answer_index FROM question_bank"
     )
     .fetch_all(db)
     .await?;
@@ -75,7 +75,7 @@ pub async fn get_answers(
     let mut answers_map = HashMap::new();
 
     for row in rows{
-        answers_map.insert(row.id, row.answer);
+        answers_map.insert(row.id, row.answer_index);
     }
 
     Ok(answers_map)
@@ -85,7 +85,7 @@ pub async fn questions_count(
     db: &PgPool
 ) -> Result<i64, sqlx::Error> {
     let result = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM questions"
+        "SELECT COUNT(*) FROM question_bank"
     ).fetch_one(db).await?;
 
     Ok(result)
@@ -96,7 +96,7 @@ pub async fn validation_questions(
     question_ids: &Vec<i32>
 ) -> Result<bool, sqlx::Error>{
     let result = sqlx::query_scalar::<_, i32>(
-        "SELECT id FROM questions WHERE id = ANY($1)"
+        "SELECT id FROM question_bank WHERE id = ANY($1)"
     ).bind(question_ids)
     .fetch_all(db)
     .await?;
@@ -111,7 +111,7 @@ pub async fn each_question_options_count(
 ) -> Result<HashMap<i32, i32>, sqlx::Error>{
     let rows = sqlx::query_as::<_, QuestionMaxOptions>(
         "SELECT id, array_length(options, 1) as options_len
-FROM questions"
+FROM question_bank"
     )
     .fetch_all(db)
     .await?;
@@ -130,7 +130,7 @@ pub async fn question_duplicate_check(
     question: &str
 ) -> Result<bool, sqlx::Error>{
     let result = sqlx::query(
-        "SELECT 1 FROM questions WHERE LOWER(question) = LOWER($1)"
+        "SELECT 1 FROM question_bank WHERE LOWER(question_text) = LOWER($1)"
     )
     .bind(question)
     .fetch_optional(db)
