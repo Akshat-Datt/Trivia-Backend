@@ -1,12 +1,27 @@
 use serde::{Serialize, Deserialize};
 use sqlx::FromRow;
+use chrono::{DateTime, Utc, NaiveDate};
+
 
 #[derive(Serialize, Clone, FromRow)]
 pub struct Question {
     pub id: i32,
-    pub question: String,
+
+    pub question_text: String,
     pub options: Vec<String>,
-    pub answer: i32
+    pub answer_index: i32,
+
+    pub platform_id: i32,
+    pub content_type_id: i32,
+
+    pub difficulty: String,
+
+    pub challenge_date: Option<NaiveDate>,
+
+    pub is_active: bool,
+
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Deserialize)]
@@ -16,9 +31,9 @@ pub struct QuestionQuery{
 
 #[derive(Deserialize)]
 pub struct CreateQuestion{
-    pub question:String,
+    pub question_text:String,
     pub options: Vec<String>,
-    pub answer: i32
+    pub answer_index: i32
 }
 
 #[derive(Deserialize)]

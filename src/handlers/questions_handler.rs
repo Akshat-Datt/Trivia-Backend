@@ -29,7 +29,7 @@ pub async fn get_question_by_id(State(state): State<AppState>, Path(id): Path<i3
 }
 
 pub async fn create_question( State(state): State<AppState>, Json(payload): Json<CreateQuestion>) -> Result<Json<Question>, AppError>{
-    let question = question_service::create_question(&state.db, &payload.question, &payload.options, payload.answer).await?;
+    let question = question_service::create_question(&state.db, &payload.question_text, &payload.options, payload.answer_index).await?;
 
     Ok(Json(question))
 }

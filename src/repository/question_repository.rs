@@ -9,7 +9,7 @@ pub async fn get_all_questions(
     
     if let Some(limit) = limit{
         sqlx::query_as::<_, Question>(
-            "SELECT id, question, options, answer FROM questions LIMIT $1"
+            "SELECT id, question_text, options, answer_index, platform_id, content_type_id, difficulty, challenge_date, is_active, created_at, updated_at FROM question_bank LIMIT $1"
         )
         .bind(limit as i64)
         .fetch_all(db)
@@ -17,7 +17,7 @@ pub async fn get_all_questions(
     }
     else{
         sqlx::query_as::<_, Question>(
-            "SELECT id, question, options, answer FROM questions"
+            "SELECT id, question_text, options, answer_index, platform_id, content_type_id, difficulty, challenge_date, is_active, created_at, updated_at FROM question_bank"
         )
         .fetch_all(db)
         .await
@@ -38,16 +38,16 @@ pub async fn get_question_by_id(
 
 pub async fn create_question(
     db: &PgPool,
-    question: &str,
+    question_text: &str,
     options: &Vec<String>,
-    answer: &i32
+    answer_index: &i32
 ) -> Result<Question, sqlx::Error>{
     sqlx::query_as::<_, Question>(
-        "INSERT INTO questions (question, options, answer) VALUES ($1, $2, $3) RETURNING id, question, options, answer"
+        "INSERT INTO questions (question_text, options, answer_index) VALUES ($1, $2, $3) RETURNING id, question_text, options, answer_index"
     )
-    .bind(question)
+    .bind(question_text)
     .bind(options)
-    .bind(answer)
+    .bind(answer_index)
     .fetch_one(db)
     .await
 }
