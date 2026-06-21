@@ -37,6 +37,34 @@ pub async fn get_question_by_id(
     .await
 }
 
+pub async fn platform_id_exists(
+    db: &PgPool,
+    platform_id: &i32
+) -> Result<bool, sqlx::Error>{
+    let result = sqlx::query_scalar(
+        "SELECT EXISTS( SELECT 1 FROM platforms WHERE id = $1 );"
+    )
+    .bind(platform_id)
+    .fetch_one(db)
+    .await?;
+
+    Ok(result)
+}
+
+pub async fn content_type_id_exists(
+    db: &PgPool,
+    content_type_id: &i32
+)-> Result<bool, sqlx::Error>{
+    let result = sqlx::query_scalar(
+        "SELECT EXISTS( SELECT 1 FROM content_types WHERE id = $1 );"
+    )
+    .bind(content_type_id)
+    .fetch_one(db)
+    .await?;
+
+    Ok(result)
+}
+
 pub async fn create_question(
     db: &PgPool,
     question_text: &str,

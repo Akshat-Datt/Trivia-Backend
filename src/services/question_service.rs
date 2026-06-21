@@ -44,31 +44,54 @@ pub async fn create_question(
 ) -> Result<Question, AppError>{
     let question = question.trim();
 
-    if question.is_empty(){
-        return Err(AppError::ValidationError("Question cannot be empty".to_string()));
-    }
+    validate_question_data(db, question, options, &answer, &platform_id, &content_type_id).await?;
 
     if question_repository::question_duplicate_check(db, question).await.map_err(|_| AppError::DatabaseError)?{
         return Err(AppError::Conflict("Question already exists".to_string()));
     }
 
-    if answer < 0 || answer >= options.len() as i32{
-        return Err(AppError::ValidationError("Answer index is out of bounds".to_string()));
-    }
-
-    if options.len() < 4 || options.len() > 4 {
-        return Err(AppError::ValidationError("Four options are required".to_string()));
-    }
-
-    for option_item in options{
-        if option_item.trim().is_empty(){
-            return Err(AppError::ValidationError("Options cannot be empty".to_string()));
-        }
-    }
-
     return question_repository::create_question(db, question, options, &answer, &platform_id, &content_type_id, difficulty, challenge_date, &is_active)
     .await
     .map_err(|_| AppError::DatabaseError);
+}
+
+pub async fn update_question(
+    db: &PgPool,
+    id: i32,
+    question: &str,
+    options: &Vec<String>,
+    answer: i32,
+    platform_id: i32,
+    content_type_id: i32,
+    difficulty: &str,
+    challenge_date: Option<chrono::NaiveDate>,
+    is_active: bool
+) -> Result<Question, AppError>{
+    let question = question.trim();
+
+    if id <= 0 {
+        return Err(AppError::ValidationError("ID must be greater than 0".to_string()));
+    }
+
+    validate_question_data(db, question, options, &answer, &platform_id, &content_type_id).await?;
+
+    let question = question_repository::update_question(db, id, question, options, &answer, &platform_id, &content_type_id, difficulty, challenge_date, &is_active).await.map_err(|_| AppError::DatabaseError)?;
+
+    match question {
+        Some(q) => Ok(q),
+        None => Err(AppError::NotFound("Question not found".to_string()))
+    }
+}
+
+pub async fn delete_question(
+    db: &PgPool,
+    id: i32
+) -> Result<bool, AppError>{
+    if id <= 0 {
+        return Err(AppError::ValidationError("ID must be greater than 0".to_string()));
+    }
+
+   return question_repository::delete_question(db, id).await.map_err(|_| AppError::DatabaseError);
 }
 
 pub async fn get_answers(
@@ -123,35 +146,33 @@ pub async fn get_answers(
     return Ok(score_response);
 }
 
-pub async fn update_question(
+async fn validate_question_data(
     db: &PgPool,
-    id: i32,
     question: &str,
     options: &Vec<String>,
-    answer: i32,
-    platform_id: i32,
-    content_type_id: i32,
-    difficulty: &str,
-    challenge_date: Option<chrono::NaiveDate>,
-    is_active: bool
-) -> Result<Question, AppError>{
-    let question = question.trim();
-
-    if id <= 0 {
-        return Err(AppError::ValidationError("ID must be greater than 0".to_string()));
-    }
-
+    answer: &i32,
+    platform_id: &i32,
+    content_type_id: &i32
+)-> Result<(), AppError>{
     if question.is_empty(){
         return Err(AppError::ValidationError("Question cannot be empty".to_string()));
 
     }
 
-    if answer < 0 || answer >= options.len() as i32{
+    if *answer < 0 || *answer >= options.len() as i32{
         return Err(AppError::ValidationError("Answer index is out of bounds".to_string()));
     }
 
     if options.len() < 4 || options.len() > 4 {
         return Err(AppError::ValidationError("Four options are required".to_string()));
+    }
+
+    if check_platform_id_exists(db, &platform_id).await? == false{
+        return Err(AppError::NotFound("Platform ID not found it must be within bounds".to_string()));
+    }
+
+    if check_content_type_if_exists(db, &content_type_id).await? == false{
+        return Err(AppError::NotFound("Platform ID not found it must be within bounds".to_string()));
     }
 
     for option_item in options{
@@ -160,21 +181,23 @@ pub async fn update_question(
         }
     }
 
-    let question = question_repository::update_question(db, id, question, options, &answer, &platform_id, &content_type_id, difficulty, challenge_date, &is_active).await.map_err(|_| AppError::DatabaseError)?;
-
-    match question {
-        Some(q) => Ok(q),
-        None => Err(AppError::NotFound("Question not found".to_string()))
-    }
+    Ok(())
 }
 
-pub async fn delete_question(
+async fn check_platform_id_exists(
     db: &PgPool,
-    id: i32
+    platform_id: &i32
 ) -> Result<bool, AppError>{
-    if id <= 0 {
-        return Err(AppError::ValidationError("ID must be greater than 0".to_string()));
-    }
+    return question_repository::platform_id_exists(db, platform_id)
+    .await
+    .map_err(|_| AppError::NotFound("Platform ID not found".to_string()));
+}
 
-   return question_repository::delete_question(db, id).await.map_err(|_| AppError::DatabaseError);
+async fn check_content_type_if_exists(
+    db: &PgPool,
+    content_type_id: &i32
+) -> Result<bool, AppError>{
+    return question_repository::content_type_id_exists(db, content_type_id)
+    .await
+    .map_err(|_| AppError::NotFound("Content Type ID not found".to_string()));
 }
