@@ -13,6 +13,7 @@ mod repository;
 mod services;
 mod errors;
 mod dto;
+mod validators;
 
 #[tokio::main]
 async fn main() {
