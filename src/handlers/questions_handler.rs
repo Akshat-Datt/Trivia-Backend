@@ -1,7 +1,7 @@
 use axum::{
     Json, extract::{Path, Query, State}, http::StatusCode
 };
-use crate::{dto::{question_response::{QuestionAdmin, QuestionPublic}, score_response::ScoreResponse, submit_quiz_request::QuizSubmission}, errors::errors::AppError, models::question_data::{CreateQuestion, Question, QuestionQuery, UpdateQuestion}};
+use crate::{dto::{question_response::{QuestionAdmin, QuestionPublic, QuestionStatus}, score_response::ScoreResponse, submit_quiz_request::QuizSubmission}, errors::errors::AppError, models::question_data::{CreateQuestion, Question, QuestionQuery, UpdateQuestion}};
 use crate::state::app_state::AppState;
 use crate::services::question_service;
 
@@ -54,4 +54,10 @@ pub async fn delete_question(State(state): State<AppState>, Path(id): Path<i32>)
     } else {
         Err(AppError::NotFound("Question not found".to_string()))
     }
+}
+
+pub async fn toggle_question_status(State(state): State<AppState>, Path(id): Path<i32>) -> Result<Json<QuestionStatus>, AppError>{
+    let question = question_service::toggle_active_status(&state.db, id).await?;
+
+    Ok(Json(question))
 }

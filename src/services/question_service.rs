@@ -1,6 +1,6 @@
 use sqlx::{PgPool};
 use crate::{
-    dto::score_response::ScoreResponse, errors::errors::AppError, models::question_data::Question, repository::question_repository::{self}, validators::{validate_answer, validate_question}
+    dto::{question_response::QuestionStatus, score_response::ScoreResponse}, errors::errors::AppError, models::question_data::Question, repository::question_repository::{self}, validators::{validate_answer, validate_question}
 };
 
 pub async fn get_questions(
@@ -123,4 +123,25 @@ pub async fn get_answers(
     };
 
     return Ok(score_response);
+}
+
+pub async fn toggle_active_status(
+    db: &PgPool,
+    id: i32
+) -> Result<QuestionStatus, AppError>{
+    if id <= 0 {
+        return Err(AppError::ValidationError("ID must be greater than 0".to_string()));
+    }
+
+    if validate_question::question_id_exists(db, id).await? == false{
+        return Err(AppError::NotFound("Question ID not found".to_string()));
+    }
+
+    let question_status = question_repository::get_question_active_status(db, id).await.map_err(|_| AppError::DatabaseError)?;
+
+    let new_status = !question_status;
+
+    let question = question_repository::change_question_active_status(db, id, new_status).await.map_err(|_| AppError::DatabaseError)?;
+
+    Ok(question)
 }

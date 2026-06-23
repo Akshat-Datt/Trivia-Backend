@@ -72,6 +72,15 @@ async fn check_content_type_if_exists(
     .map_err(|_| AppError::NotFound("Content Type ID not found".to_string()));
 }
 
+pub async fn question_id_exists(
+    db: &PgPool,
+    id: i32
+) -> Result<bool, AppError>{
+    return question_repository::question_id_exists(db, id)
+    .await
+    .map_err(|_| AppError::NotFound("Question ID not found".to_string()));
+}
+
 fn validate_difficulty(
     difficulty: &str
 ) -> Result<(), AppError>{
