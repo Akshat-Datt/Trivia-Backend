@@ -1,7 +1,7 @@
 use axum::{
     Json, extract::{Path, Query, State}, http::StatusCode
 };
-use crate::{dto::{question_response::{QuestionAdmin, QuestionPublic, QuestionStatus}, score_response::ScoreResponse, submit_quiz_request::QuizSubmission}, errors::errors::AppError, models::question_data::{CreateQuestion, Question, QuestionQuery, UpdateQuestion}};
+use crate::{dto::{question_request::QuestionChallengeDateRequest, question_response::{QuestionAdmin, QuestionChallengeDate, QuestionPublic, QuestionStatus}, score_response::ScoreResponse, submit_quiz_request::QuizSubmission}, errors::errors::AppError, models::question_data::{CreateQuestion, Question, QuestionQuery, UpdateQuestion}};
 use crate::state::app_state::AppState;
 use crate::services::question_service;
 
@@ -60,4 +60,10 @@ pub async fn toggle_question_status(State(state): State<AppState>, Path(id): Pat
     let question = question_service::toggle_active_status(&state.db, id).await?;
 
     Ok(Json(question))
+}
+
+pub async fn change_challenge_date(State(state): State<AppState>, Path(id): Path<i32>, Json(payload): Json<QuestionChallengeDateRequest>) -> Result<Json<QuestionChallengeDate>, AppError>{
+    let question_challenge_date_response = question_service::change_question_challenge_date(&state.db, id, payload.challenge_date).await?;
+
+    Ok(Json(question_challenge_date_response))
 }

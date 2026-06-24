@@ -3,7 +3,7 @@ use axum::{
     routing::{get, post}
 };
 use crate::{handlers::questions_handler::{
-    create_question, delete_question, get_question_by_id, get_questions_admin, get_questions_public, submit_quiz, update_question, toggle_question_status
+    create_question, delete_question, get_question_by_id, get_questions_admin, get_questions_public, submit_quiz, update_question, toggle_question_status, change_challenge_date
 }, state::app_state::AppState};
 
 pub fn questions_routes() -> Router<AppState>{
@@ -13,4 +13,5 @@ pub fn questions_routes() -> Router<AppState>{
     .route("/questions/{id}", get(get_question_by_id).put(update_question).delete(delete_question))
     .route("/submit/questions", post(submit_quiz))
     .route("/questions/{id}/toggle-status", post(toggle_question_status))
+    .route("/questions/{id}/challenge-date", post(change_challenge_date))
 }
