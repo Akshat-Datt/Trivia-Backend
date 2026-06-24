@@ -36,6 +36,20 @@ pub struct QuestionAdmin{
     pub updated_at: DateTime<Utc>,
 }
 
+#[derive(Serialize, Clone, FromRow)]
+pub struct QuestionStatus{
+    pub id: i32,
+    pub question_text: String,
+    pub is_active: bool
+}
+
+#[derive(Serialize, Clone, FromRow)]
+pub struct QuestionChallengeDate{
+    pub id: i32,
+    pub question_text: String,
+    pub challenge_date: Option<NaiveDate>
+}
+
 impl From<Question> for QuestionPublic {
     fn from(question:Question) -> Self {
         QuestionPublic{

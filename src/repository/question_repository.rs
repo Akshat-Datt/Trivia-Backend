@@ -1,7 +1,7 @@
 use std::{collections::HashMap};
 use sqlx::{PgPool};
 use chrono::{NaiveDate};
-use crate::models::question_data::{Question, QuestionAnswer, QuestionMaxOptions};
+use crate::{dto::question_response::{QuestionChallengeDate, QuestionStatus}, models::question_data::{Question, QuestionAnswer, QuestionMaxOptions}};
 
 pub async fn get_all_questions(
     db: &PgPool,
@@ -59,6 +59,20 @@ pub async fn content_type_id_exists(
         "SELECT EXISTS( SELECT 1 FROM content_types WHERE id = $1 );"
     )
     .bind(content_type_id)
+    .fetch_one(db)
+    .await?;
+
+    Ok(result)
+}
+
+pub async fn question_id_exists(
+    db: &PgPool,
+    question_id: i32
+) -> Result<bool, sqlx::Error>{
+    let result = sqlx::query_scalar(
+        "SELECT EXISTS( SELECT 1 FROM question_bank WHERE id = $1 );"
+    )
+    .bind(question_id)
     .fetch_one(db)
     .await?;
 
@@ -207,6 +221,69 @@ pub async fn delete_question(
     .await?;
 
     Ok(result.rows_affected() > 0)
+}
+
+pub async fn get_question_active_status(
+    db: &PgPool,
+    id: i32
+) -> Result<bool, sqlx::Error>{
+    let result = sqlx::query_scalar(
+        "SELECT is_active FROM question_bank WHERE id = $1"
+    )
+    .bind(id)
+    .fetch_one(db)
+    .await?;
+
+    Ok(result)
+}
+
+pub async fn change_question_active_status(
+    db: &PgPool,
+    id: i32,
+    new_status: bool
+) -> Result<QuestionStatus, sqlx::Error>{
+    let result = sqlx::query_as::<_, QuestionStatus>(
+        "UPDATE question_bank SET is_active = $1 WHERE id = $2 RETURNING id, question_text, is_active"
+    )
+    .bind(new_status)
+    .bind(id)
+    .fetch_one(db)
+    .await?;
+
+    Ok(result)
+}
+
+pub async fn get_question_challenge_date(
+    db: &PgPool,
+    id: i32
+) -> Result<Option<NaiveDate>, sqlx::Error>{
+    let result = sqlx::query_scalar(
+        "SELECT challenge_date FROM question_bank WHERE id = $1"
+    )
+    .bind(id)
+    .fetch_optional(db)
+    .await?;
+
+    match result {
+        Some(challenge_date) => Ok(challenge_date),
+        None => Ok(None)
+    }
+}
+
+pub async fn change_question_challenge_date(
+    db: &PgPool,
+    id: i32,
+    challenge_date: Option<NaiveDate>
+) -> Result<QuestionChallengeDate, sqlx::Error>{
+    let result = sqlx::query_as::<_, QuestionChallengeDate>(
+        "UPDATE question_bank SET challenge_date = $1 WHERE id = $2 RETURNING id, question_text, challenge_date"
+    )
+    .bind(challenge_date)
+    .bind(id)
+    .fetch_one(db)
+    .await?;
+
+    Ok(result)
 }
 
 

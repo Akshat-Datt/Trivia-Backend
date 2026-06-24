@@ -43,13 +43,7 @@ pub async fn validate_question_data(
 
     validate_difficulty(&difficulty)?;
 
-    if challenge_date.is_some(){
-        let today = Local::now().date_naive();
-        
-        if challenge_date.unwrap() < today{
-            return Err(AppError::ValidationError("Challenge date cannot be in the past".to_string()));
-        }
-    }
+    challenge_date_staleness(challenge_date).await?;
 
     Ok(())
 }
@@ -70,6 +64,38 @@ async fn check_content_type_if_exists(
     return question_repository::content_type_id_exists(db, content_type_id)
     .await
     .map_err(|_| AppError::NotFound("Content Type ID not found".to_string()));
+}
+
+pub async fn question_id_exists(
+    db: &PgPool,
+    id: i32
+) -> Result<bool, AppError>{
+    return question_repository::question_id_exists(db, id)
+    .await
+    .map_err(|_| AppError::NotFound("Question ID not found".to_string()));
+}
+
+pub async fn is_active_status(
+    db: &PgPool,
+    id: i32
+) -> Result<bool, AppError>{
+    return question_repository::get_question_active_status(db, id)
+    .await
+    .map_err(|_| AppError::NotFound("Question ID not found".to_string()));
+}
+
+pub async fn challenge_date_staleness(
+    challenge_date: &Option<chrono::NaiveDate>
+) -> Result<(), AppError>{
+    if challenge_date.is_some(){
+        let today = Local::now().date_naive();
+        
+        if challenge_date.unwrap() < today{
+            return Err(AppError::ValidationError("Question cannot be set in past or else it has already be a part of past".to_string()));
+        }
+    }
+
+    Ok(())
 }
 
 fn validate_difficulty(

@@ -1,6 +1,6 @@
 use sqlx::{PgPool};
 use crate::{
-    dto::score_response::ScoreResponse, errors::errors::AppError, models::question_data::Question, repository::question_repository::{self}, validators::{validate_answer, validate_question}
+    dto::{question_response::{QuestionChallengeDate, QuestionStatus}, score_response::ScoreResponse}, errors::errors::AppError, models::question_data::Question, repository::question_repository::{self}, validators::{validate_answer, validate_question}
 };
 
 pub async fn get_questions(
@@ -123,4 +123,59 @@ pub async fn get_answers(
     };
 
     return Ok(score_response);
+}
+
+pub async fn toggle_active_status(
+    db: &PgPool,
+    id: i32
+) -> Result<QuestionStatus, AppError>{
+    if id <= 0 {
+        return Err(AppError::ValidationError("ID must be greater than 0".to_string()));
+    }
+
+    if validate_question::question_id_exists(db, id).await? == false{
+        return Err(AppError::NotFound("Question ID not found".to_string()));
+    }
+
+    let question_status = validate_question::is_active_status(db, id).await?;
+
+    let new_status = !question_status;
+
+    let question = question_repository::change_question_active_status(db, id, new_status).await.map_err(|_| AppError::DatabaseError)?;
+
+    Ok(question)
+}
+
+pub async fn change_question_challenge_date(
+    db: &PgPool,
+    id: i32,
+    challenge_date: Option<chrono::NaiveDate>
+) -> Result<QuestionChallengeDate, AppError>{
+    if id <= 0 {
+        return Err(AppError::ValidationError("ID must be greater than 0".to_string()));
+    }
+
+    if validate_question::question_id_exists(db, id).await? == false{
+        return Err(AppError::NotFound("Question ID not found".to_string()));
+    }
+
+    if challenge_date.is_none() {
+        return Err(AppError::ValidationError("Challenge date cannot be nothing".to_string()));
+    }
+
+    let question_status = validate_question::is_active_status(db, id).await?;
+
+    if question_status == false{
+        return Err(AppError::ValidationError("Cannot change challenge date of an inactive question".to_string()));
+    }
+
+    let question_challenge_date = question_repository::get_question_challenge_date(db, id).await.map_err(|_| AppError::DatabaseError)?;
+
+    validate_question::challenge_date_staleness(&question_challenge_date).await?;
+
+    validate_question::challenge_date_staleness(&challenge_date).await?;
+
+    let question_challenge_response = question_repository::change_question_challenge_date(db, id, challenge_date).await.map_err(|_| AppError::DatabaseError)?;
+
+    Ok(question_challenge_response)
 }
