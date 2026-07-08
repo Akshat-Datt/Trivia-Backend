@@ -1,6 +1,6 @@
 use sqlx::{PgPool};
 use crate::{
-    dto::{question_response::{QuestionChallengeDate, QuestionStatus}, score_response::ScoreResponse}, errors::errors::AppError, models::question_data::Question, repository::question_repository::{self}, validators::{validate_answer, validate_question}
+    constants::quiz_constants::DAILY_QUIZ_QUESTION_COUNT, dto::{question_response::{QuestionChallengeDate, QuestionStatus}, score_response::ScoreResponse}, errors::errors::AppError, models::question_data::{DailyQuestion, Question}, repository::question_repository::{self}, validators::{validate_answer, validate_question}
 };
 
 pub async fn get_questions(
@@ -29,6 +29,22 @@ pub async fn get_question_by_id(
         Some(q) => Ok(q),
         None => Err(AppError::NotFound("Question not found".to_string()))
     }
+}
+
+pub async fn get_daily_questions(
+    db: &PgPool
+) -> Result<Vec<DailyQuestion>, AppError>{
+    let daily_questions = question_repository::get_daily_questions(db).await.map_err(|_| AppError::DatabaseError)?;
+
+    if daily_questions.is_empty() {
+        return Err(AppError::NotFound("No daily questions found".to_string()));
+    }
+
+    if daily_questions.len() < DAILY_QUIZ_QUESTION_COUNT || daily_questions.len() > DAILY_QUIZ_QUESTION_COUNT {
+        return Err(AppError::ValidationError(format!("Daily questions count must be exactly {}. Found: {}", DAILY_QUIZ_QUESTION_COUNT, daily_questions.len())));
+    }
+
+    return Ok(daily_questions);
 }
 
 pub async fn create_question(
