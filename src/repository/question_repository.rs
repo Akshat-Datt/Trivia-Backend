@@ -1,7 +1,7 @@
 use std::{collections::HashMap};
 use sqlx::{PgPool};
 use chrono::{NaiveDate};
-use crate::{dto::question_response::{QuestionChallengeDate, QuestionStatus}, models::question_data::{Question, QuestionAnswer, QuestionMaxOptions}};
+use crate::{dto::question_response::{QuestionChallengeDate, QuestionStatus}, models::question_data::{DailyQuestion, Question, QuestionAnswer, QuestionMaxOptions}};
 
 pub async fn get_all_questions(
     db: &PgPool,
@@ -23,6 +23,16 @@ pub async fn get_all_questions(
         .fetch_all(db)
         .await
     }
+}
+
+pub async fn get_daily_questions(
+    db:&PgPool,
+) -> Result<Vec<DailyQuestion>, sqlx::Error>{
+    sqlx::query_as::<_,DailyQuestion>(
+        "SELECT id, question_text, options, platform_id, content_type_id, difficulty FROM question_bank WHERE is_active = true AND challenge_date = CURRENT_DATE ORDER BY id"
+    )
+    .fetch_all(db)
+    .await
 }
 
 pub async fn get_question_by_id(
