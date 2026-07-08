@@ -14,6 +14,7 @@ mod services;
 mod errors;
 mod dto;
 mod validators;
+mod constants;
 
 #[tokio::main]
 async fn main() {

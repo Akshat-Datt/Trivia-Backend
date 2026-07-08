@@ -1,8 +1,6 @@
 use chrono::Local;
 use sqlx::PgPool;
-use crate::{repository::question_repository, errors::errors::AppError};
-
-const VALID_DIFFICULTIES: [&str; 3] = [ "Easy", "Medium", "Hard" ];
+use crate::{constants::{quiz_constants::REQUIRED_OPTIONS_COUNT, validation_constants::VALID_DIFFICULTIES}, errors::errors::AppError, repository::question_repository};
 
 pub async fn validate_question_data(
     db: &PgPool,
@@ -23,7 +21,7 @@ pub async fn validate_question_data(
         return Err(AppError::ValidationError("Answer index is out of bounds".to_string()));
     }
 
-    if options.len() < 4 || options.len() > 4 {
+    if options.len() < REQUIRED_OPTIONS_COUNT || options.len() > REQUIRED_OPTIONS_COUNT {
         return Err(AppError::ValidationError("Four options are required".to_string()));
     }
 

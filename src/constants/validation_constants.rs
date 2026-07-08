@@ -1,0 +1,1 @@
+pub const VALID_DIFFICULTIES: [&str; 3] = [ "Easy", "Medium", "Hard" ];
