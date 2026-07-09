@@ -31,8 +31,8 @@ pub struct DailyQuestion {
     pub question_text: String,
     pub options: Vec<String>,
 
-    pub platform_id: i32,
-    pub content_type_id: i32,
+    pub platform_name: String,
+    pub content_type_name: String,
 
     pub difficulty: String,
 }

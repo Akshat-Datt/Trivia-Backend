@@ -29,7 +29,7 @@ pub async fn get_daily_questions(
     db:&PgPool,
 ) -> Result<Vec<DailyQuestion>, sqlx::Error>{
     sqlx::query_as::<_,DailyQuestion>(
-        "SELECT id, question_text, options, platform_id, content_type_id, difficulty FROM question_bank WHERE is_active = true AND challenge_date = CURRENT_DATE ORDER BY id"
+        "SELECT q.id, q.question_text, q.options, p.platform_name, ct.content_type_name, q.difficulty FROM question_bank q JOIN platforms p ON q.platform_id = p.id JOIN content_types ct ON q.content_type_id = ct.id WHERE q.is_active = true AND q.challenge_date = CURRENT_DATE ORDER BY q.id"
     )
     .fetch_all(db)
     .await
