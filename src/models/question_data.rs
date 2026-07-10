@@ -24,19 +24,6 @@ pub struct Question {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Serialize, Clone, FromRow)]
-pub struct DailyQuestion {
-    pub id: i32,
-
-    pub question_text: String,
-    pub options: Vec<String>,
-
-    pub platform_name: String,
-    pub content_type_name: String,
-
-    pub difficulty: String,
-}
-
 #[derive(Deserialize)]
 pub struct QuestionQuery{
     pub limit: Option<usize>

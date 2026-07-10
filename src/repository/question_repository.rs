@@ -1,7 +1,7 @@
 use std::{collections::HashMap};
 use sqlx::{PgPool};
 use chrono::{NaiveDate};
-use crate::{dto::question_response::{QuestionChallengeDate, QuestionStatus}, models::question_data::{DailyQuestion, Question, QuestionAnswer, QuestionMaxOptions}};
+use crate::{dto::question_response::{DailyQuestion, QuestionChallengeDate, QuestionStatus}, models::question_data::{Question, QuestionAnswer, QuestionMaxOptions}};
 
 pub async fn get_all_questions(
     db: &PgPool,
@@ -23,6 +23,7 @@ pub async fn get_all_questions(
         .fetch_all(db)
         .await
     }
+
 }
 
 pub async fn get_daily_questions(
