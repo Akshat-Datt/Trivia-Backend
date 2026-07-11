@@ -1,24 +1,47 @@
 use std::{collections::HashMap};
 use sqlx::{PgPool};
 use chrono::{NaiveDate};
-use crate::{dto::question_response::{DailyQuestion, QuestionChallengeDate, QuestionStatus}, models::question_data::{Question, QuestionAnswer, QuestionMaxOptions}};
+use crate::{dto::question_response::{DailyQuestion, QuestionAdmin, QuestionChallengeDate, QuestionPublic, QuestionStatus}, models::question_data::{Question, QuestionAnswer, QuestionMaxOptions}};
 
-pub async fn get_all_questions(
+pub async fn get_all_public_questions(
     db: &PgPool,
     limit: Option<usize>
-) -> Result<Vec<Question>, sqlx::Error>{
+) -> Result<Vec<QuestionPublic>, sqlx::Error>{
     
     if let Some(limit) = limit{
-        sqlx::query_as::<_, Question>(
-            "SELECT id, question_text, options, answer_index, platform_id, content_type_id, difficulty, challenge_date, is_active, created_at, updated_at FROM question_bank LIMIT $1"
+        sqlx::query_as::<_, QuestionPublic>(
+            "SELECT q.id, q.question_text, q.options, p.platform_name, ct.content_type_name, q.difficulty, q.challenge_date FROM question_bank q JOIN platforms p ON q.platform_id = p.id JOIN content_types ct ON q.content_type_id = ct.id LIMIT $1"
         )
         .bind(limit as i64)
         .fetch_all(db)
         .await
     }
     else{
-        sqlx::query_as::<_, Question>(
-            "SELECT id, question_text, options, answer_index, platform_id, content_type_id, difficulty, challenge_date, is_active, created_at, updated_at FROM question_bank"
+        sqlx::query_as::<_, QuestionPublic>(
+            "SELECT q.id, q.question_text, q.options, p.platform_name, ct.content_type_name, q.difficulty, q.challenge_date FROM question_bank q JOIN platforms p ON q.platform_id = p.id JOIN content_types ct ON q.content_type_id = ct.id"
+        )
+        .fetch_all(db)
+        .await
+    }
+
+}
+
+pub async fn get_all_admin_questions(
+    db: &PgPool,
+    limit: Option<usize>
+) -> Result<Vec<QuestionAdmin>, sqlx::Error>{
+    
+    if let Some(limit) = limit{
+        sqlx::query_as::<_, QuestionAdmin>(
+            "SELECT q.id, q.question_text, q.options, q.answer_index, p.platform_name, ct.content_type_name, q.difficulty, q.challenge_date, q.is_active, q.created_at, q.updated_at FROM question_bank q JOIN platforms p ON q.platform_id = p.id JOIN content_types ct ON q.content_type_id = ct.id LIMIT $1"
+        )
+        .bind(limit as i64)
+        .fetch_all(db)
+        .await
+    }
+    else{
+        sqlx::query_as::<_, QuestionAdmin>(
+            "SELECT q.id, q.question_text, q.options, q.answer_index, p.platform_name, ct.content_type_name, q.difficulty, q.challenge_date, q.is_active, q.created_at, q.updated_at FROM question_bank q JOIN platforms p ON q.platform_id = p.id JOIN content_types ct ON q.content_type_id = ct.id"
         )
         .fetch_all(db)
         .await

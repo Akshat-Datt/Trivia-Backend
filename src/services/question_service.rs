@@ -1,13 +1,22 @@
 use sqlx::{PgPool};
 use crate::{
-    constants::quiz_constants::DAILY_QUIZ_QUESTION_COUNT, dto::{question_response::{DailyQuestion, QuestionChallengeDate, QuestionStatus}, score_response::ScoreResponse}, errors::errors::AppError, models::question_data::Question, repository::question_repository::{self}, validators::{validate_answer, validate_question}
+    constants::quiz_constants::DAILY_QUIZ_QUESTION_COUNT, dto::{question_response::{DailyQuestion, QuestionAdmin, QuestionChallengeDate, QuestionPublic, QuestionStatus}, score_response::ScoreResponse}, errors::errors::AppError, models::question_data::Question, repository::question_repository::{self}, validators::{validate_answer, validate_question}
 };
 
-pub async fn get_questions(
+pub async fn get_public_questions(
     db: &PgPool,
     limit: Option<usize>
-) -> Result<Vec<Question>, AppError>{
-    return question_repository::get_all_questions(db, limit)
+) -> Result<Vec<QuestionPublic>, AppError>{
+    return question_repository::get_all_public_questions(db, limit)
+    .await
+    .map_err(|_| AppError::DatabaseError);
+}
+
+pub async fn get_admin_questions(
+    db: &PgPool,
+    limit: Option<usize>
+) -> Result<Vec<QuestionAdmin>, AppError>{
+    return question_repository::get_all_admin_questions(db, limit)
     .await
     .map_err(|_| AppError::DatabaseError);
 }
