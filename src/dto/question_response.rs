@@ -49,6 +49,18 @@ pub struct DailyQuestion {
 }
 
 #[derive(Serialize, Clone, FromRow)]
+pub struct EndlessQuestion {
+    pub id: i32,
+
+    pub question_text: String,
+    pub options: Vec<String>,
+
+    pub content_type_name: String,
+
+    pub difficulty: String,
+}
+
+#[derive(Serialize, Clone, FromRow)]
 pub struct QuestionStatus{
     pub id: i32,
     pub question_text: String,

@@ -1,6 +1,6 @@
 use sqlx::{PgPool};
 use crate::{
-    constants::quiz_constants::DAILY_QUIZ_QUESTION_COUNT, dto::{question_response::{DailyQuestion, QuestionAdmin, QuestionChallengeDate, QuestionPublic, QuestionStatus}, score_response::ScoreResponse}, errors::errors::AppError, models::question_data::Question, repository::question_repository::{self}, validators::{validate_answer, validate_question}
+    constants::quiz_constants::DAILY_QUIZ_QUESTION_COUNT, dto::{question_response::{DailyQuestion, EndlessQuestion, QuestionAdmin, QuestionChallengeDate, QuestionPublic, QuestionStatus}, score_response::ScoreResponse}, errors::errors::AppError, models::question_data::Question, repository::question_repository::{self}, validators::{validate_answer, validate_question::{self, check_platform_id_exists}}
 };
 
 pub async fn get_public_questions(
@@ -54,6 +54,24 @@ pub async fn get_daily_questions(
     }
 
     return Ok(daily_questions);
+}
+
+pub async fn get_endless_questions(
+    db: &PgPool,
+    platform_id: i32
+)-> Result<Vec<EndlessQuestion>, AppError>{
+
+    if check_platform_id_exists(db, &platform_id).await? == false{
+        return Err(AppError::NotFound("Platform ID not found it must be within bounds".to_string()));
+    }
+
+    let endless_questions = question_repository::get_endless_questions(db, platform_id).await.map_err(|_| AppError::DatabaseError)?;
+
+    if endless_questions.is_empty() {
+        return Err(AppError::NotFound("No endless questions found for the given platform".to_string()));
+    }
+
+    return Ok(endless_questions)
 }
 
 pub async fn create_question(
