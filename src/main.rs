@@ -2,7 +2,7 @@ use dotenvy::dotenv;
 use sqlx::{postgres::PgPoolOptions};
 use std::env;
 
-use crate::{routes::questions::questions_routes, state::app_state::AppState};
+use crate::{routes::{platforms::platfrom_routes, questions::questions_routes}, state::app_state::AppState};
 use axum::Router;
 
 mod handlers;
@@ -32,6 +32,7 @@ async fn main() {
 
     let app = Router::new()
         .merge(questions_routes())
+        .merge(platfrom_routes())
         .with_state(shared_state);
 
     axum::serve(

@@ -46,7 +46,7 @@ pub async fn validate_question_data(
     Ok(())
 }
 
-async fn check_platform_id_exists(
+pub async fn check_platform_id_exists(
     db: &PgPool,
     platform_id: &i32
 ) -> Result<bool, AppError>{

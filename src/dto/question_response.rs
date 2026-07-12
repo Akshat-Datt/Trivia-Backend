@@ -36,7 +36,7 @@ pub struct QuestionAdmin{
 }
 
 #[derive(Serialize, Clone, FromRow)]
-pub struct DailyQuestion {
+pub struct QuizQuestion {
     pub id: i32,
 
     pub question_text: String,
@@ -46,6 +46,15 @@ pub struct DailyQuestion {
     pub content_type_name: String,
 
     pub difficulty: String,
+}
+
+#[derive(Serialize)]
+pub struct EndlessQuizResponse{
+    pub page: Option<i64>,
+    pub limit: Option<i64>,
+    pub total_questions: u32,
+    pub has_next: bool,
+    pub questions: Vec<QuizQuestion>
 }
 
 #[derive(Serialize, Clone, FromRow)]

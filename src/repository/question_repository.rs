@@ -1,7 +1,7 @@
 use std::{collections::HashMap};
 use sqlx::{PgPool};
 use chrono::{NaiveDate};
-use crate::{dto::question_response::{DailyQuestion, QuestionAdmin, QuestionChallengeDate, QuestionPublic, QuestionStatus}, models::question_data::{Question, QuestionAnswer, QuestionMaxOptions}};
+use crate::{dto::question_response::{QuizQuestion, QuestionAdmin, QuestionChallengeDate, QuestionPublic, QuestionStatus}, models::question_data::{Question, QuestionAnswer, QuestionMaxOptions}};
 
 pub async fn get_all_public_questions(
     db: &PgPool,
@@ -51,10 +51,26 @@ pub async fn get_all_admin_questions(
 
 pub async fn get_daily_questions(
     db:&PgPool,
-) -> Result<Vec<DailyQuestion>, sqlx::Error>{
-    sqlx::query_as::<_,DailyQuestion>(
+) -> Result<Vec<QuizQuestion>, sqlx::Error>{
+    sqlx::query_as::<_,QuizQuestion>(
         "SELECT q.id, q.question_text, q.options, p.platform_name, ct.content_type_name, q.difficulty FROM question_bank q JOIN platforms p ON q.platform_id = p.id JOIN content_types ct ON q.content_type_id = ct.id WHERE q.is_active = true AND q.challenge_date = CURRENT_DATE ORDER BY q.id"
     )
+    .fetch_all(db)
+    .await
+}
+
+pub async fn get_endless_questions(
+    db:&PgPool,
+    platform_id: i32,
+    offset: i64,
+    limit: Option<i64>
+) -> Result<Vec<QuizQuestion>, sqlx::Error>{
+    sqlx::query_as::<_, QuizQuestion>(
+        "SELECT q.id, q.question_text, q.options, p.platform_name, ct.content_type_name, q.difficulty FROM question_bank q JOIN platforms p ON q.platform_id = p.id JOIN content_types ct ON q.content_type_id = ct.id WHERE q.is_active = true AND q.platform_id = $1 ORDER BY RANDOM() LIMIT $2 OFFSET $3"
+    )
+    .bind(platform_id)
+    .bind(limit)
+    .bind(offset)
     .fetch_all(db)
     .await
 }
