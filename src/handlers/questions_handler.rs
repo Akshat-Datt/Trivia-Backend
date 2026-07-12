@@ -1,7 +1,7 @@
 use axum::{
     Json, extract::{Path, Query, State}, http::StatusCode
 };
-use crate::{dto::{question_request::{EndlessQuestionPlatfromIdRequest, QuestionChallengeDateRequest}, question_response::{DailyQuestion, EndlessQuestion, QuestionAdmin, QuestionChallengeDate, QuestionPublic, QuestionStatus}, score_response::ScoreResponse, submit_quiz_request::QuizSubmission}, errors::errors::AppError, models::question_data::{CreateQuestion, Question, QuestionQuery, UpdateQuestion}};
+use crate::{dto::{question_request::{EndlessQuestionRequest, QuestionChallengeDateRequest}, question_response::{EndlessQuizResponse, QuestionAdmin, QuestionChallengeDate, QuestionPublic, QuestionStatus, QuizQuestion}, score_response::ScoreResponse, submit_quiz_request::QuizSubmission}, errors::errors::AppError, models::question_data::{CreateQuestion, Question, QuestionQuery, UpdateQuestion}};
 use crate::state::app_state::AppState;
 use crate::services::question_service;
 
@@ -24,16 +24,16 @@ pub async fn get_question_by_id(State(state): State<AppState>, Path(id): Path<i3
     Ok(Json(question))
 }
 
-pub async fn get_daily_questions(State(state): State<AppState>) -> Result<Json<Vec<DailyQuestion>>, AppError>{
+pub async fn get_daily_questions(State(state): State<AppState>) -> Result<Json<Vec<QuizQuestion>>, AppError>{
     let daily_questions = question_service::get_daily_questions(&state.db).await?;
 
     Ok(Json(daily_questions))
 }
 
-pub async fn get_endless_questions(State(state): State<AppState>, Query(params): Query<EndlessQuestionPlatfromIdRequest>) -> Result<Json<Vec<EndlessQuestion>>, AppError>{
-    let endless_questions = question_service::get_endless_questions(&state.db, params.platform_id).await?;
+pub async fn get_endless_questions(State(state): State<AppState>, Query(params): Query<EndlessQuestionRequest>) -> Result<Json<EndlessQuizResponse>, AppError>{
+    let endless_question_reponse = question_service::get_endless_questions(&state.db, params.platform_id, params.page, params.limit).await?;
 
-    Ok(Json(endless_questions))
+    Ok(Json(endless_question_reponse))
 }
 
 pub async fn create_question( State(state): State<AppState>, Json(payload): Json<CreateQuestion>) -> Result<Json<Question>, AppError>{

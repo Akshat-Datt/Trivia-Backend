@@ -7,6 +7,8 @@ pub struct QuestionChallengeDateRequest{
 }
 
 #[derive(Deserialize)]
-pub struct EndlessQuestionPlatfromIdRequest{
-    pub platform_id: i32
+pub struct EndlessQuestionRequest{
+    pub platform_id: i32,
+    pub page: Option<u32>,
+    pub limit: Option<u32>
 }

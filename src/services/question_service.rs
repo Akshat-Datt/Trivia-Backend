@@ -1,6 +1,6 @@
 use sqlx::{PgPool};
 use crate::{
-    constants::quiz_constants::DAILY_QUIZ_QUESTION_COUNT, dto::{question_response::{DailyQuestion, EndlessQuestion, QuestionAdmin, QuestionChallengeDate, QuestionPublic, QuestionStatus}, score_response::ScoreResponse}, errors::errors::AppError, models::question_data::Question, repository::question_repository::{self}, validators::{validate_answer, validate_question::{self, check_platform_id_exists}}
+    constants::quiz_constants::{DAILY_QUIZ_QUESTION_COUNT, ENDLES_QUIZ_MAX_LIMIT}, dto::{question_response::{EndlessQuizResponse, QuestionAdmin, QuestionChallengeDate, QuestionPublic, QuestionStatus, QuizQuestion}, score_response::ScoreResponse}, errors::errors::AppError, models::question_data::Question, repository::question_repository::{self}, validators::{validate_answer, validate_question::{self, check_platform_id_exists}}
 };
 
 pub async fn get_public_questions(
@@ -42,7 +42,7 @@ pub async fn get_question_by_id(
 
 pub async fn get_daily_questions(
     db: &PgPool
-) -> Result<Vec<DailyQuestion>, AppError>{
+) -> Result<Vec<QuizQuestion>, AppError>{
     let daily_questions = question_repository::get_daily_questions(db).await.map_err(|_| AppError::DatabaseError)?;
 
     if daily_questions.is_empty() {
@@ -58,20 +58,44 @@ pub async fn get_daily_questions(
 
 pub async fn get_endless_questions(
     db: &PgPool,
-    platform_id: i32
-)-> Result<Vec<EndlessQuestion>, AppError>{
+    platform_id: i32,
+    page: Option<u32>,
+    limit: Option<u32>
+)-> Result<EndlessQuizResponse, AppError>{
+
+    let page = page.unwrap_or(1) as i64;
+
+    let limit = limit.unwrap_or(10) as i64;
+
+    if page <= 0{
+        return Err(AppError::ValidationError("Page must be greater than 0".to_string()));
+    }
+
+    if limit <= 0 || limit > ENDLES_QUIZ_MAX_LIMIT{
+        return Err(AppError::ValidationError(format!("Limit must be greater than 0 and less than or equal to {}", ENDLES_QUIZ_MAX_LIMIT)));
+    }
+
+    let offset = ((page - 1) * limit) as i64;
 
     if check_platform_id_exists(db, &platform_id).await? == false{
         return Err(AppError::NotFound("Platform ID not found it must be within bounds".to_string()));
     }
 
-    let endless_questions = question_repository::get_endless_questions(db, platform_id).await.map_err(|_| AppError::DatabaseError)?;
+    let endless_questions = question_repository::get_endless_questions(db, platform_id, offset, Some(limit)).await.map_err(|_| AppError::DatabaseError)?;
 
     if endless_questions.is_empty() {
         return Err(AppError::NotFound("No endless questions found for the given platform".to_string()));
     }
 
-    return Ok(endless_questions)
+    let endless_quiz_response = EndlessQuizResponse{
+        page: Some(page),
+        limit: Some(limit),
+        total_questions: endless_questions.len() as u32,
+        has_next: (page * limit) < endless_questions.len() as i64,
+        questions: endless_questions
+    };
+
+    return Ok(endless_quiz_response)
 }
 
 pub async fn create_question(
